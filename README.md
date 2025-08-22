@@ -11,6 +11,8 @@ This Terraform module provisions an AWS VPC Site in F5 Distributed Cloud (XC). T
 
 It simplifies the AWS VPC Site creation process by populating default parameters, managing SSH keys, and parsing the Site Apply output.
 
+> **Note**: This module is developed and maintained by the [F5 DevCentral](https://github.com/f5devcentral) community. You can use this module as an example for your own development projects.
+
 ## Requirements
 
 | Name                                                                                                                 | Version    |
@@ -213,5 +215,6 @@ We welcome contributions to this module! Here's how you can help:
 6. Test the implementation
 
 ## License
+
 
 This module is licensed under the Apache 2.0 License.
