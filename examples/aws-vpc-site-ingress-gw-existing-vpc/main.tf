@@ -11,7 +11,7 @@ provider "aws" {
 
 module "aws_vpc" {
   source  = "f5devcentral/aws-vpc-site-networking/xc"
-  version = "0.0.5"
+  version = "0.0.6"
 
   name          = "aws-example-ingress-gw-vpc"
   vpc_cidr      = "172.10.0.0/16"
@@ -20,7 +20,7 @@ module "aws_vpc" {
 }
 
 module "aws_vpc_site" {
-  source                 = "../.."
+  source = "../.."
 
   site_name              = "aws-example-ingress-gw"
   aws_region             = "us-west-2"
@@ -42,20 +42,20 @@ module "aws_vpc_site" {
     key2 = "value2"
   }
 
-  depends_on = [ 
+  depends_on = [
     module.aws_cloud_credentials,
   ]
 }
 
 module "aws_cloud_credentials" {
   source  = "f5devcentral/aws-cloud-credentials/xc"
-  version = "0.0.3"
+  version = "0.0.4"
 
   tags = {
     key1 = "value1"
     key2 = "value2"
   }
-  
+
   name           = "aws-tf-test-creds"
   aws_access_key = var.aws_access_key
   aws_secret_key = var.aws_secret_key

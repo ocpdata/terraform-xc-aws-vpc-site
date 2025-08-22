@@ -25,7 +25,7 @@ module "aws_vpc_network" {
   count = var.create_aws_vpc ? 1 : 0
 
   source  = "f5devcentral/aws-vpc-site-networking/xc"
-  version = "0.0.5"
+  version = "0.0.6"
 
   name             = format("%s-vpc", var.site_name)
   az_names         = var.master_nodes_az_names
@@ -35,6 +35,7 @@ module "aws_vpc_network" {
   inside_subnets   = var.inside_subnets
   workload_subnets = var.workload_subnets
 
+  create_outside_default_route = false
 
   vpc_instance_tenancy                     = var.vpc_instance_tenancy
   vpc_enable_dns_hostnames                 = var.vpc_enable_dns_hostnames
@@ -51,9 +52,9 @@ resource "volterra_aws_vpc_site" "this" {
   # General Settings
   #-----------------------------------------------------
 
-  name          = var.site_name
-  description   = var.site_description
-  namespace     = var.site_namespace
+  name        = var.site_name
+  description = var.site_description
+  namespace   = var.site_namespace
 
   os {
     default_os_version       = (null == var.operating_system_version)
@@ -98,7 +99,7 @@ resource "volterra_aws_vpc_site" "this" {
   #-----------------------------------------------------
 
   direct_connect_disabled = (null == var.direct_connect)
-  dynamic direct_connect_enabled {
+  dynamic "direct_connect_enabled" {
     for_each = (null != var.direct_connect) ? [0] : []
 
     content {
@@ -111,9 +112,9 @@ resource "volterra_aws_vpc_site" "this" {
   #-----------------------------------------------------
   # Egress
   #-----------------------------------------------------
-  egress_gateway_default  = (null == var.egress_nat_gw && null == var.egress_virtual_private_gateway)
+  egress_gateway_default = (null == var.egress_nat_gw && null == var.egress_virtual_private_gateway)
 
-  dynamic egress_nat_gw {
+  dynamic "egress_nat_gw" {
     for_each = (null != var.egress_nat_gw) ? [0] : []
 
     content {
@@ -121,7 +122,7 @@ resource "volterra_aws_vpc_site" "this" {
     }
   }
 
-  dynamic egress_virtual_private_gateway {
+  dynamic "egress_virtual_private_gateway" {
     for_each = (null != var.egress_virtual_private_gateway) ? [0] : []
 
     content {
@@ -142,13 +143,13 @@ resource "volterra_aws_vpc_site" "this" {
 
   logs_streaming_disabled = (null == var.log_receiver)
 
-  dynamic log_receiver {
+  dynamic "log_receiver" {
     for_each = null != var.log_receiver ? [0] : []
 
     content {
       name      = var.log_receiver.name
       namespace = var.log_receiver.namespace
-      tenant    = vat.log_receiver.tenant
+      tenant    = var.log_receiver.tenant
     }
   }
 
@@ -164,7 +165,7 @@ resource "volterra_aws_vpc_site" "this" {
 
   f5xc_security_group = (null == var.custom_security_group && !var.create_aws_vpc)
 
-  dynamic custom_security_group {
+  dynamic "custom_security_group" {
     for_each = (null != var.custom_security_group || var.create_aws_vpc) ? [0] : []
 
     content {
@@ -187,7 +188,7 @@ resource "volterra_aws_vpc_site" "this" {
   default_blocked_services = (true != var.block_all_services && null == var.blocked_service)
   block_all_services       = var.block_all_services
 
-  dynamic blocked_services {
+  dynamic "blocked_services" {
     for_each = (null != var.blocked_service && true != var.block_all_services) ? [0] : []
 
     content {
@@ -204,7 +205,7 @@ resource "volterra_aws_vpc_site" "this" {
   # Site type: Ingress Gateway
   #-----------------------------------------------------
 
-  dynamic ingress_gw {
+  dynamic "ingress_gw" {
     for_each = var.site_type == "ingress_gw" ? [0] : []
 
     content {
@@ -223,7 +224,7 @@ resource "volterra_aws_vpc_site" "this" {
         use_https_port           = (true == var.allowed_vip_port.use_https_port) ? true : null
       }
 
-      dynamic az_nodes {
+      dynamic "az_nodes" {
         for_each = { for idx, value in slice(local.master_nodes_az_names, 0, local.master_nodes_in_az_count) : tostring(idx) => value }
 
         content {
@@ -237,7 +238,7 @@ resource "volterra_aws_vpc_site" "this" {
       performance_enhancement_mode {
         perf_mode_l7_enhanced = (null == var.jumbo)
 
-        dynamic perf_mode_l3_enhanced {
+        dynamic "perf_mode_l3_enhanced" {
           for_each = (null != var.jumbo) ? [0] : []
           content {
             jumbo    = (true == var.jumbo) ? true : null
@@ -251,7 +252,7 @@ resource "volterra_aws_vpc_site" "this" {
   #-----------------------------------------------------
   # Ingress Egress Gateway
   #-----------------------------------------------------
-  dynamic ingress_egress_gw  {
+  dynamic "ingress_egress_gw" {
     for_each = var.site_type == "ingress_egress_gw" ? [0] : []
 
     content {
@@ -259,7 +260,7 @@ resource "volterra_aws_vpc_site" "this" {
 
       allowed_vip_port {
         dynamic "custom_ports" {
-          for_each = (null != var.allowed_vip_port.custom_port_ranges)  ? [0] : []
+          for_each = (null != var.allowed_vip_port.custom_port_ranges) ? [0] : []
           content {
             port_ranges = var.allowed_vip_port.custom_port_ranges
           }
@@ -272,7 +273,7 @@ resource "volterra_aws_vpc_site" "this" {
 
       allowed_vip_port_sli {
         dynamic "custom_ports" {
-          for_each = (null != var.allowed_vip_port.custom_port_ranges)  ? [0] : []
+          for_each = (null != var.allowed_vip_port.custom_port_ranges) ? [0] : []
           content {
             port_ranges = var.allowed_vip_port.custom_port_ranges
           }
@@ -283,7 +284,7 @@ resource "volterra_aws_vpc_site" "this" {
         use_https_port           = (true == var.allowed_vip_port.use_https_port) ? true : null
       }
 
-      dynamic az_nodes {
+      dynamic "az_nodes" {
         for_each = { for idx, value in slice(local.master_nodes_az_names, 0, local.master_nodes_in_az_count) : tostring(idx) => value }
 
         content {
@@ -309,7 +310,7 @@ resource "volterra_aws_vpc_site" "this" {
 
       no_dc_cluster_group = (null == var.dc_cluster_group_inside_vn && null == var.dc_cluster_group_outside_vn)
 
-      dynamic dc_cluster_group_inside_vn {
+      dynamic "dc_cluster_group_inside_vn" {
         for_each = (null != var.dc_cluster_group_inside_vn) ? [0] : []
 
         content {
@@ -319,7 +320,7 @@ resource "volterra_aws_vpc_site" "this" {
         }
       }
 
-      dynamic dc_cluster_group_outside_vn {
+      dynamic "dc_cluster_group_outside_vn" {
         for_each = (null != var.dc_cluster_group_outside_vn) ? [0] : []
 
         content {
@@ -335,7 +336,7 @@ resource "volterra_aws_vpc_site" "this" {
 
       no_global_network = (length(var.global_network_connections_list) == 0)
 
-      dynamic global_network_list {
+      dynamic "global_network_list" {
         for_each = (length(var.global_network_connections_list) > 0) ? [0] : []
 
         content {
@@ -374,7 +375,7 @@ resource "volterra_aws_vpc_site" "this" {
       # Static Routes
       #-----------------------------------------------------
 
-      no_inside_static_routes  = (length(var.inside_static_route_list) == 0)
+      no_inside_static_routes = (length(var.inside_static_route_list) == 0)
 
       dynamic "inside_static_routes" {
         for_each = (length(var.inside_static_route_list) > 0) ? [0] : []
@@ -386,7 +387,7 @@ resource "volterra_aws_vpc_site" "this" {
               dynamic "custom_static_route" {
                 for_each = (null != static_route_list.value.custom_static_route) ? [0] : []
                 content {
-                  attrs = static_route_list.value.custom_static_route.attrs
+                  attrs  = static_route_list.value.custom_static_route.attrs
                   labels = static_route_list.value.custom_static_route.labels
 
                   dynamic "nexthop" {
@@ -397,9 +398,9 @@ resource "volterra_aws_vpc_site" "this" {
                       dynamic "interface" {
                         for_each = (null != static_route_list.value.custom_static_route.nexthop.interface) ? [0] : []
                         content {
-                          name = static_route_list.value.custom_static_route.nexthop.interface.name
+                          name      = static_route_list.value.custom_static_route.nexthop.interface.name
                           namespace = static_route_list.value.custom_static_route.nexthop.interface.namespace
-                          tenant = static_route_list.value.custom_static_route.nexthop.interface.tenant
+                          tenant    = static_route_list.value.custom_static_route.nexthop.interface.tenant
                         }
                       }
 
@@ -429,14 +430,14 @@ resource "volterra_aws_vpc_site" "this" {
                       dynamic "ipv4" {
                         for_each = (null != static_route_list.value.custom_static_route.subnets.ipv4) ? [0] : []
                         content {
-                          plen  = static_route_list.value.custom_static_route.subnets.ipv4.plen
+                          plen   = static_route_list.value.custom_static_route.subnets.ipv4.plen
                           prefix = static_route_list.value.custom_static_route.subnets.ipv4.prefix
                         }
                       }
                       dynamic "ipv6" {
                         for_each = (null != static_route_list.value.custom_static_route.subnets.ipv6) ? [0] : []
                         content {
-                          plen  = static_route_list.value.custom_static_route.subnets.ipv6.plen
+                          plen   = static_route_list.value.custom_static_route.subnets.ipv6.plen
                           prefix = static_route_list.value.custom_static_route.subnets.ipv6.prefix
                         }
                       }
@@ -461,7 +462,7 @@ resource "volterra_aws_vpc_site" "this" {
               dynamic "custom_static_route" {
                 for_each = (null != static_route_list.value.custom_static_route) ? [0] : []
                 content {
-                  attrs = static_route_list.value.custom_static_route.attrs
+                  attrs  = static_route_list.value.custom_static_route.attrs
                   labels = static_route_list.value.custom_static_route.labels
 
                   dynamic "nexthop" {
@@ -472,9 +473,9 @@ resource "volterra_aws_vpc_site" "this" {
                       dynamic "interface" {
                         for_each = (null != static_route_list.value.custom_static_route.nexthop.interface) ? [0] : []
                         content {
-                          name = static_route_list.value.custom_static_route.nexthop.interface.name
+                          name      = static_route_list.value.custom_static_route.nexthop.interface.name
                           namespace = static_route_list.value.custom_static_route.nexthop.interface.namespace
-                          tenant = static_route_list.value.custom_static_route.nexthop.interface.tenant
+                          tenant    = static_route_list.value.custom_static_route.nexthop.interface.tenant
                         }
                       }
 
@@ -503,14 +504,14 @@ resource "volterra_aws_vpc_site" "this" {
                       dynamic "ipv4" {
                         for_each = (null != static_route_list.value.custom_static_route.subnets.ipv4) ? [0] : []
                         content {
-                          plen  = static_route_list.value.custom_static_route.subnets.ipv4.plen
+                          plen   = static_route_list.value.custom_static_route.subnets.ipv4.plen
                           prefix = static_route_list.value.custom_static_route.subnets.ipv4.prefix
                         }
                       }
                       dynamic "ipv6" {
                         for_each = (null != static_route_list.value.custom_static_route.subnets.ipv6) ? [0] : []
                         content {
-                          plen  = static_route_list.value.custom_static_route.subnets.ipv6.plen
+                          plen   = static_route_list.value.custom_static_route.subnets.ipv6.plen
                           prefix = static_route_list.value.custom_static_route.subnets.ipv6.prefix
                         }
                       }
@@ -573,9 +574,9 @@ resource "volterra_aws_vpc_site" "this" {
           dynamic "forward_proxy_policies" {
             for_each = var.active_forward_proxy_policies_list
             content {
-              name      = enhanced_firewall_policies.value.name
-              namespace = enhanced_firewall_policies.value.namespace
-              tenant    = enhanced_firewall_policies.value.tenant
+              name      = forward_proxy_policies.value.name
+              namespace = forward_proxy_policies.value.namespace
+              tenant    = forward_proxy_policies.value.tenant
             }
           }
 
@@ -586,8 +587,8 @@ resource "volterra_aws_vpc_site" "this" {
       # IP SEC
       #-----------------------------------------------------
 
-      sm_connection_public_ip  = (true == var.sm_connection_public_ip)
-      sm_connection_pvt_ip     = (true != var.sm_connection_public_ip)
+      sm_connection_public_ip = (true == var.sm_connection_public_ip)
+      sm_connection_pvt_ip    = (true != var.sm_connection_public_ip)
 
       #-----------------------------------------------------
       # Performance Mode
@@ -596,7 +597,7 @@ resource "volterra_aws_vpc_site" "this" {
       performance_enhancement_mode {
         perf_mode_l7_enhanced = (null == var.jumbo)
 
-        dynamic perf_mode_l3_enhanced {
+        dynamic "perf_mode_l3_enhanced" {
           for_each = (null != var.jumbo) ? [0] : []
           content {
             jumbo    = (true == var.jumbo) ? true : null
@@ -604,6 +605,264 @@ resource "volterra_aws_vpc_site" "this" {
           }
         }
       }
+    }
+  }
+
+  #-----------------------------------------------------
+  # Site type: App Stack (Voltstack Cluster)
+  #-----------------------------------------------------
+
+  dynamic "voltstack_cluster" {
+    for_each = var.site_type == "app_stack" ? [0] : []
+
+    content {
+      aws_certified_hw = "aws-byol-voltstack-combo"
+
+      allowed_vip_port {
+        dynamic "custom_ports" {
+          for_each = (null != var.allowed_vip_port.custom_port_ranges) ? [0] : []
+          content {
+            port_ranges = var.allowed_vip_port.custom_port_ranges
+          }
+        }
+        disable_allowed_vip_port = (true == var.allowed_vip_port.disable_allowed_vip_port)
+        use_http_https_port      = (true == var.allowed_vip_port.use_http_https_port) ? true : null
+        use_http_port            = (true == var.allowed_vip_port.use_http_port) ? true : null
+        use_https_port           = (true == var.allowed_vip_port.use_https_port) ? true : null
+      }
+
+      dynamic "az_nodes" {
+        for_each = { for idx, value in slice(local.master_nodes_az_names, 0, local.master_nodes_in_az_count) : tostring(idx) => value }
+
+        content {
+          aws_az_name = az_nodes.value
+
+          local_subnet {
+            existing_subnet_id = local.local_subnet_ids[tonumber(az_nodes.key)]
+          }
+        }
+      }
+
+      #-----------------------------------------------------
+      # DC Cluster Group
+      #-----------------------------------------------------
+
+      no_dc_cluster_group = (null == var.dc_cluster_group)
+
+      dynamic "dc_cluster_group" {
+        for_each = (null != var.dc_cluster_group) ? [0] : []
+
+        content {
+          name      = var.dc_cluster_group.name
+          namespace = var.dc_cluster_group.namespace
+          tenant    = var.dc_cluster_group.tenant
+        }
+      }
+
+      #-----------------------------------------------------
+      # Global Network
+      #-----------------------------------------------------
+
+      no_global_network = (length(var.global_network_connections_list) == 0)
+
+      dynamic "global_network_list" {
+        for_each = (length(var.global_network_connections_list) > 0) ? [0] : []
+
+        content {
+          dynamic "global_network_connections" {
+            for_each = var.global_network_connections_list
+            content {
+              dynamic "sli_to_global_dr" {
+                for_each = (null != global_network_connections.value.sli_to_global_dr) ? [0] : []
+
+                content {
+                  global_vn {
+                    name      = global_network_connections.value.sli_to_global_dr.global_vn.name
+                    namespace = global_network_connections.value.sli_to_global_dr.global_vn.namespace
+                    tenant    = global_network_connections.value.sli_to_global_dr.global_vn.tenant
+                  }
+                }
+              }
+
+              dynamic "slo_to_global_dr" {
+                for_each = (null != global_network_connections.value.slo_to_global_dr) ? [0] : []
+
+                content {
+                  global_vn {
+                    name      = global_network_connections.value.slo_to_global_dr.global_vn.name
+                    namespace = global_network_connections.value.slo_to_global_dr.global_vn.namespace
+                    tenant    = global_network_connections.value.slo_to_global_dr.global_vn.tenant
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+
+      #-----------------------------------------------------
+      # Kubernetes Cluster
+      #-----------------------------------------------------
+
+      no_k8s_cluster = (null == var.k8s_cluster)
+
+      dynamic "k8s_cluster" {
+        for_each = (null != var.k8s_cluster) ? [0] : []
+
+        content {
+          name      = var.k8s_cluster.name
+          namespace = var.k8s_cluster.namespace
+          tenant    = var.k8s_cluster.tenant
+        }
+      }
+
+      #-----------------------------------------------------
+      # Manage Firewall Policy
+      #-----------------------------------------------------
+
+      no_network_policy = (length(var.enhanced_firewall_policies_list) == 0 && length(var.active_network_policies_list) == 0)
+
+      dynamic "active_enhanced_firewall_policies" {
+        for_each = (length(var.enhanced_firewall_policies_list) > 0) ? [0] : []
+        content {
+          dynamic "enhanced_firewall_policies" {
+            for_each = var.enhanced_firewall_policies_list
+            content {
+              name      = enhanced_firewall_policies.value.name
+              namespace = enhanced_firewall_policies.value.namespace
+              tenant    = enhanced_firewall_policies.value.tenant
+            }
+          }
+        }
+      }
+
+      dynamic "active_network_policies" {
+        for_each = (length(var.active_network_policies_list) > 0) ? [0] : []
+        content {
+          dynamic "network_policies" {
+            for_each = var.active_network_policies_list
+            content {
+              name      = network_policies.value.name
+              namespace = network_policies.value.namespace
+              tenant    = network_policies.value.tenant
+            }
+          }
+        }
+      }
+
+      #-----------------------------------------------------
+      # Manage Forward Proxy
+      #-----------------------------------------------------
+
+      no_forward_proxy = (length(var.active_forward_proxy_policies_list) == 0)
+
+      forward_proxy_allow_all = (true == var.forward_proxy_allow_all)
+
+      dynamic "active_forward_proxy_policies" {
+        for_each = (length(var.active_forward_proxy_policies_list) > 0) ? [0] : []
+        content {
+          dynamic "forward_proxy_policies" {
+            for_each = var.active_forward_proxy_policies_list
+            content {
+              name      = forward_proxy_policies.value.name
+              namespace = forward_proxy_policies.value.namespace
+              tenant    = forward_proxy_policies.value.tenant
+            }
+          }
+        }
+      }
+
+      #-----------------------------------------------------
+      # Static Routes
+      #-----------------------------------------------------
+
+      no_outside_static_routes = (length(var.outside_static_route_list) == 0)
+
+      dynamic "outside_static_routes" {
+        for_each = (length(var.outside_static_route_list) > 0) ? [0] : []
+        content {
+          dynamic "static_route_list" {
+            for_each = var.outside_static_route_list
+            content {
+              simple_static_route = static_route_list.value.simple_static_route
+              dynamic "custom_static_route" {
+                for_each = (null != static_route_list.value.custom_static_route) ? [0] : []
+                content {
+                  attrs  = static_route_list.value.custom_static_route.attrs
+                  labels = static_route_list.value.custom_static_route.labels
+
+                  dynamic "nexthop" {
+                    for_each = (null != static_route_list.value.custom_static_route.nexthop) ? [0] : []
+                    content {
+                      type = static_route_list.value.custom_static_route.nexthop.type
+
+                      dynamic "interface" {
+                        for_each = (null != static_route_list.value.custom_static_route.nexthop.interface) ? [0] : []
+                        content {
+                          name      = static_route_list.value.custom_static_route.nexthop.interface.name
+                          namespace = static_route_list.value.custom_static_route.nexthop.interface.namespace
+                          tenant    = static_route_list.value.custom_static_route.nexthop.interface.tenant
+                        }
+                      }
+
+                      dynamic "nexthop_address" {
+                        for_each = (null != static_route_list.value.custom_static_route.nexthop.nexthop_address) ? [0] : []
+                        content {
+                          dynamic "ipv4" {
+                            for_each = (null != static_route_list.value.custom_static_route.nexthop.nexthop_address.ipv4) ? [0] : []
+                            content {
+                              addr = static_route_list.value.custom_static_route.nexthop.nexthop_address.ipv4.addr
+                            }
+                          }
+                          dynamic "ipv6" {
+                            for_each = (null != static_route_list.value.custom_static_route.nexthop.nexthop_address.ipv6) ? [0] : []
+                            content {
+                              addr = static_route_list.value.custom_static_route.nexthop.nexthop_address.ipv6.addr
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+
+                  dynamic "subnets" {
+                    for_each = (null != static_route_list.value.custom_static_route.subnets) ? [0] : []
+                    content {
+                      dynamic "ipv4" {
+                        for_each = (null != static_route_list.value.custom_static_route.subnets.ipv4) ? [0] : []
+                        content {
+                          plen   = static_route_list.value.custom_static_route.subnets.ipv4.plen
+                          prefix = static_route_list.value.custom_static_route.subnets.ipv4.prefix
+                        }
+                      }
+                      dynamic "ipv6" {
+                        for_each = (null != static_route_list.value.custom_static_route.subnets.ipv6) ? [0] : []
+                        content {
+                          plen   = static_route_list.value.custom_static_route.subnets.ipv6.plen
+                          prefix = static_route_list.value.custom_static_route.subnets.ipv6.prefix
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+
+      #-----------------------------------------------------
+      # Storage Class
+      #-----------------------------------------------------
+
+      default_storage = (true == var.default_storage)
+
+      #-----------------------------------------------------
+      # IP SEC
+      #-----------------------------------------------------
+
+      sm_connection_public_ip = (true == var.sm_connection_public_ip)
+      sm_connection_pvt_ip    = (true != var.sm_connection_public_ip)
     }
   }
 
@@ -645,10 +904,10 @@ resource "volterra_tf_params_action" "action_apply" {
 
 locals {
   tf_output = resource.volterra_tf_params_action.action_apply.tf_output
-  lines = split("\n", trimspace(local.tf_output))
-  output_map = { 
+  lines     = split("\n", trimspace(local.tf_output))
+  output_map = {
     for line in local.lines :
-      trimspace(element(split("=", line), 0)) => jsondecode(trimspace(element(split("=", line), 1)))
+    trimspace(element(split("=", line), 0)) => jsondecode(trimspace(element(split("=", line), 1)))
     if can(regex("=", line))
   }
 }

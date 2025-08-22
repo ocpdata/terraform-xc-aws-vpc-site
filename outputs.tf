@@ -63,7 +63,7 @@ output "outside_subnet_ids" {
 }
 
 output "outside_route_table_ids" {
-  value       = data.aws_route_table.outside_route_tables.*.id
+  value       = data.aws_route_table.outside_route_tables[*].id
   description = "The IDs of the outside route tables."
 }
 
@@ -73,7 +73,7 @@ output "inside_subnet_ids" {
 }
 
 output "inside_route_table_ids" {
-  value       = data.aws_route_table.inside_route_tables.*.id
+  value       = data.aws_route_table.inside_route_tables[*].id
   description = "The IDs of the inside route tables."
 }
 
@@ -83,7 +83,7 @@ output "workload_subnet_ids" {
 }
 
 output "workload_route_table_ids" {
-  value       = data.aws_route_table.workload_route_tables.*.id
+  value       = data.aws_route_table.workload_route_tables[*].id
   description = "The IDs of the workload route tables."
 }
 
@@ -93,7 +93,7 @@ output "local_subnet_ids" {
 }
 
 output "local_route_table_ids" {
-  value       = data.aws_route_table.local_route_tables.*.id
+  value       = data.aws_route_table.local_route_tables[*].id
   description = "The IDs of the local route tables."
 }
 
@@ -106,8 +106,8 @@ output "outside_security_group_id" {
   value       = (null != try(var.custom_security_group.outside_security_group_id, null)) ? var.custom_security_group.outside_security_group_id : (var.create_aws_vpc ? module.aws_vpc_network[0].outside_security_group_id : null)
   description = "The ID of the outside security group."
 }
-  
+
 output "inside_security_group_id" {
-  value       =  (null != try(var.custom_security_group.inside_security_group_id, null)) ? var.custom_security_group.inside_security_group_id : (var.create_aws_vpc ? module.aws_vpc_network[0].inside_security_group_id : null)
+  value       = (null != try(var.custom_security_group.inside_security_group_id, null)) ? var.custom_security_group.inside_security_group_id : (var.create_aws_vpc ? module.aws_vpc_network[0].inside_security_group_id : null)
   description = "The ID of the inside security group."
 }

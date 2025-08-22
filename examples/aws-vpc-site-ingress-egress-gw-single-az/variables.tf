@@ -14,7 +14,7 @@ variable "aws_access_key" {
 }
 
 variable "aws_secret_key" {
-  type    = string
+  type      = string
   sensitive = true
-  default = null
+  default   = null
 }
