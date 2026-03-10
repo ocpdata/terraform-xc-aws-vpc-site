@@ -4,18 +4,26 @@ provider "volterra" {
 }
 
 provider "aws" {
-  region     = "us-west-2"
+  region     = "us-east-1"
   access_key = var.aws_access_key
   secret_key = var.aws_secret_key
+}
+
+# Crea la Global Virtual Network en F5 XC para conectividad multi-cloud
+resource "volterra_virtual_network" "global" {
+  name      = "aws-global-vn"
+  namespace = "system"
+
+  global_network = true
 }
 
 module "aws_vpc_site" {
   source = "../.."
 
   site_name             = "aws-example-ingress-egress-gw"
-  aws_region            = "us-west-2"
+  aws_region            = "us-east-1"
   site_type             = "ingress_egress_gw"
-  master_nodes_az_names = ["us-west-2a"]
+  master_nodes_az_names = ["us-east-1a"]
   vpc_cidr              = "172.10.0.0/16"
   outside_subnets       = ["172.10.11.0/24"]
   workload_subnets      = ["172.10.21.0/24"]
@@ -24,10 +32,11 @@ module "aws_vpc_site" {
   aws_cloud_credentials_name = module.aws_cloud_credentials.name
   block_all_services         = false
 
+  # Conecta la subnet inside del site con la Global Virtual Network
   global_network_connections_list = [{
     sli_to_global_dr = {
       global_vn = {
-        name = "sli-to-global-dr"
+        name = volterra_virtual_network.global.name
       }
     }
   }]
@@ -38,7 +47,8 @@ module "aws_vpc_site" {
   }
 
   depends_on = [
-    module.aws_cloud_credentials
+    module.aws_cloud_credentials,
+    volterra_virtual_network.global
   ]
 }
 

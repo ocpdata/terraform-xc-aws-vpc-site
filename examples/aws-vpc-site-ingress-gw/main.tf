@@ -4,7 +4,7 @@ provider "volterra" {
 }
 
 provider "aws" {
-  region     = "us-west-2"
+  region     = "us-east-1"
   access_key = var.aws_access_key
   secret_key = var.aws_secret_key
 }
@@ -13,9 +13,9 @@ module "aws_vpc_site" {
   source = "../.."
 
   site_name             = "aws-example-ingress-gw"
-  aws_region            = "us-west-2"
+  aws_region            = "us-east-1"
   site_type             = "ingress_gw"
-  master_nodes_az_names = ["us-west-2a"]
+  master_nodes_az_names = ["us-east-1a"]
   vpc_cidr              = "172.10.0.0/16"
   local_subnets         = ["172.10.1.0/24"]
 

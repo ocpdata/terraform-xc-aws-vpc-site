@@ -1,0 +1,6 @@
+azure_tenant_id       = "your-azure-tenant-id"
+azure_subscription_id = "your-azure-subscription-id"
+azure_client_id       = "your-azure-client-id"
+azure_client_secret   = "your-azure-client-secret"
+xc_api_url            = "https://your_tenant.console.ves.volterra.io/api"
+xc_api_p12_file       = "./path_to_the_certificate.p12"

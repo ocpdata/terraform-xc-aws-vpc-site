@@ -33,3 +33,25 @@ output "local_subnet_ids" {
   value       = module.aws_vpc_site.local_subnet_ids
   description = "List of local subnet IDs."
 }
+
+output "http_loadbalancer_name" {
+  description = "Nombre del HTTP Load Balancer en F5 XC."
+  value       = volterra_http_loadbalancer.nginx.name
+}
+
+output "http_loadbalancer_namespace" {
+  description = "Namespace del HTTP Load Balancer en F5 XC."
+  value       = volterra_http_loadbalancer.nginx.namespace
+}
+
+output "how_to_test" {
+  description = "Instrucciones para desplegar nginx y probar el Load Balancer."
+  value       = <<-EOT
+    1. Espera a que el site esté ONLINE en F5 XC Console.
+    2. Descarga el kubeconfig: Console > Cloud & Edge Sites > Sites > aws-example-app-stack > K8s > Download kubeconfig
+    3. Despliega nginx:
+         KUBECONFIG=<ruta_kubeconfig> kubectl apply -f k8s/nginx-demo.yaml
+    4. Obtén el CNAME del LB: Console > App Delivery > Load Balancers > HTTP Load Balancers > nginx-demo-lb
+    5. Prueba: curl -H 'Host: nginx-demo.example.com' http://<CNAME>/
+  EOT
+}
