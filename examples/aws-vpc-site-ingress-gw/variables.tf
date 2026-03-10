@@ -18,3 +18,13 @@ variable "aws_secret_key" {
   sensitive = true
   default   = null
 }
+
+variable "vpc_cidr" {
+  type    = string
+  default = "172.10.0.0/16"
+}
+
+variable "local_subnets" {
+  type    = list(string)
+  default = ["172.10.1.0/24"]
+}

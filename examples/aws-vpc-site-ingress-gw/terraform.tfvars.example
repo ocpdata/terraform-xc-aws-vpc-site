@@ -1,4 +1,6 @@
 aws_access_key  = "your_aws_access_key"
 aws_secret_key  = "your_aws_secret_key"
 xc_api_url      = "https://your_tenant.console.ves.volterra.io/api"
-xc_api_p12_file ="./path_to_the_certificate.p12"
+xc_api_p12_file = "./path_to_the_certificate.p12"
+vpc_cidr        = "172.10.0.0/16"
+local_subnets   = ["172.10.1.0/24"]

@@ -24,10 +24,10 @@ module "aws_vpc_site" {
   aws_region            = "us-east-1"
   site_type             = "ingress_egress_gw"
   master_nodes_az_names = ["us-east-1a"]
-  vpc_cidr              = "172.10.0.0/16"
-  outside_subnets       = ["172.10.11.0/24"]
-  workload_subnets      = ["172.10.21.0/24"]
-  inside_subnets        = ["172.10.31.0/24"]
+  vpc_cidr              = var.vpc_cidr
+  outside_subnets       = var.outside_subnets
+  workload_subnets      = var.workload_subnets
+  inside_subnets        = var.inside_subnets
 
   aws_cloud_credentials_name = module.aws_cloud_credentials.name
   block_all_services         = false

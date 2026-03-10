@@ -18,3 +18,23 @@ variable "aws_secret_key" {
   sensitive = true
   default   = null
 }
+
+variable "vpc_cidr" {
+  type    = string
+  default = "172.10.0.0/16"
+}
+
+variable "outside_subnets" {
+  type    = list(string)
+  default = ["172.10.11.0/24", "172.10.12.0/24", "172.10.13.0/24"]
+}
+
+variable "workload_subnets" {
+  type    = list(string)
+  default = ["172.10.21.0/24", "172.10.22.0/24", "172.10.23.0/24"]
+}
+
+variable "inside_subnets" {
+  type    = list(string)
+  default = ["172.10.31.0/24", "172.10.32.0/24", "172.10.33.0/24"]
+}
