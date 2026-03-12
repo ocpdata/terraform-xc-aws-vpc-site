@@ -1,0 +1,16 @@
+aws_access_key  = "your_aws_access_key"
+aws_secret_key  = "your_aws_secret_key"
+xc_api_url      = "https://your_tenant.console.ves.volterra.io/api"
+xc_api_p12_file = "./path_to_the_certificate.p12"
+
+# ID de la VPC existente
+vpc_id = "vpc-0123456789abcdef0"
+
+# Subnet IDs existentes para outside (una por AZ: us-east-1a, us-east-1b, us-east-1c)
+existing_outside_subnets = ["subnet-aaaa0001", "subnet-aaaa0002", "subnet-aaaa0003"]
+
+# Subnet IDs existentes para inside (una por AZ: us-east-1a, us-east-1b, us-east-1c)
+existing_inside_subnets = ["subnet-bbbb0001", "subnet-bbbb0002", "subnet-bbbb0003"]
+
+# Subnet IDs existentes para workload (una por AZ: us-east-1a, us-east-1b, us-east-1c)
+existing_workload_subnets = ["subnet-cccc0001", "subnet-cccc0002", "subnet-cccc0003"]
