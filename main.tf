@@ -886,10 +886,10 @@ resource "volterra_cloud_site_labels" "labels" {
 }
 
 resource "time_sleep" "wait_30_seconds" {
-  # wait for 30 seconds until the site is created and validated
+  # wait for 120 seconds until the site is created and XC validation completes
   depends_on = [volterra_aws_vpc_site.this]
 
-  create_duration = "30s"
+  create_duration = "120s"
 }
 
 resource "volterra_tf_params_action" "action_apply" {
