@@ -298,8 +298,11 @@ resource "volterra_aws_vpc_site" "this" {
             existing_subnet_id = local.outside_subnet_ids[tonumber(az_nodes.key)]
           }
 
-          workload_subnet {
-            existing_subnet_id = local.workload_subnet_ids[tonumber(az_nodes.key)]
+          dynamic "workload_subnet" {
+            for_each = length(local.workload_subnet_ids) > 0 ? [local.workload_subnet_ids[tonumber(az_nodes.key)]] : []
+            content {
+              existing_subnet_id = workload_subnet.value
+            }
           }
         }
       }

@@ -20,7 +20,7 @@ resource "volterra_virtual_network" "global" {
 module "aws_vpc_site" {
   source = "../.."
 
-  site_name             = "aws-example-ingress-egress-gw-az"
+  site_name             = "aws-existing-vpc-ing-eg-multi-az"
   aws_region            = "us-east-1"
   site_type             = "ingress_egress_gw"
   master_nodes_az_names = ["us-east-1a", "us-east-1b", "us-east-1c"]
@@ -38,7 +38,8 @@ module "aws_vpc_site" {
   global_network_connections_list = [{
     sli_to_global_dr = {
       global_vn = {
-        name = volterra_virtual_network.global.name
+        name      = volterra_virtual_network.global.name
+        namespace = "system"
       }
     }
   }]
